@@ -36,7 +36,7 @@ public:
       cfg.pin_rst  = -1;
       cfg.pin_busy = -1;
 
-      // TOTO BYLO SPRÁVNĚ VE TVÉ FUNKČNÍ VERZI
+      // THIS WAS CORRECT IN YOUR WORKING VERSION
       cfg.panel_width  = 240;
       cfg.panel_height = 320;
 
@@ -46,7 +46,7 @@ public:
       // THIS WAS CORRECT IN YOUR WORKING VERSION
       cfg.offset_rotation = 0;
 
-      // TOTO BYLO SPRÁVNĚ VE TVÉ FUNKČNÍ VERZI
+      // THIS WAS CORRECT IN YOUR WORKING VERSION
       cfg.rgb_order = true;   // BGR → blue is blue
 
       _panel.config(cfg);
