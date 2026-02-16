@@ -725,13 +725,13 @@ const CityEntry australiaCities[] = {
 const CityEntry romaniaCities[] = {
   {"Bucharest", "Europe/Bucharest", 7200, 3600},
   {"Cluj-Napoca", "Europe/Bucharest", 7200, 3600},
-  {"Timisoara", "Europe/Bucharest", 7200, 3600},
-  {"Iasi", "Europe/Bucharest", 7200, 3600},
-  {"Constanta", "Europe/Bucharest", 7200, 3600},
+  {"Timișoara", "Europe/Bucharest", 7200, 3600},
+  {"Iași", "Europe/Bucharest", 7200, 3600},
+  {"Constanța", "Europe/Bucharest", 7200, 3600},
   {"Craiova", "Europe/Bucharest", 7200, 3600},
-  {"Brasov", "Europe/Bucharest", 7200, 3600},
-  {"Galati", "Europe/Bucharest", 7200, 3600},
-  {"Ploiesti", "Europe/Bucharest", 7200, 3600},
+  {"Brașov", "Europe/Bucharest", 7200, 3600},
+  {"Galați", "Europe/Bucharest", 7200, 3600},
+  {"Ploiești", "Europe/Bucharest", 7200, 3600},
   {"Oradea", "Europe/Bucharest", 7200, 3600},
 };
 
