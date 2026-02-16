@@ -43,11 +43,11 @@ public:
       cfg.offset_x = 0;
       cfg.offset_y = 0;
 
-      // TOTO BYLO SPRÁVNĚ VE TVÉ FUNKČNÍ VERZI
+      // THIS WAS CORRECT IN YOUR WORKING VERSION
       cfg.offset_rotation = 0;
 
       // TOTO BYLO SPRÁVNĚ VE TVÉ FUNKČNÍ VERZI
-      cfg.rgb_order = true;   // BGR → modrá je modrá
+      cfg.rgb_order = true;   // BGR → blue is blue
 
       _panel.config(cfg);
     }
@@ -84,7 +84,7 @@ public:
       cfg.pin_miso = 39;
 
       cfg.freq = 2500000;
-      cfg.spi_host = HSPI_HOST;   // DŮLEŽITÉ: dotyk je na HSPI
+      cfg.spi_host = HSPI_HOST;   // IMPORTANT: touch is on HSPI
       cfg.bus_shared = false;
 
       _touch.config(cfg);

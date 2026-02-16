@@ -1,15 +1,15 @@
-//update funguje - prověřit, opravit vykreslovani a blikani progress baru
+// Update works - verify, fix drawing and blinking of progress bar
 
 
-// oprava nacteni lokace po vybrani mista ze seznamu
-//pridana volbe jednotky kmh/mph a jeji ukladani do pressetu do menu weather
-// Invert pridano a ukladano 9.3.
-// oprava zapominani timezone u manual po resetu 9.3.
-// oprava zapominani zvoleného tématu po resetu 9.3.
-// oprava zapominani nastaveni autodim po resetu 9.3.
-// oprava zapominani nastaveni jednotky teploty po resetu 9.3.
-// oprava zobrazeni o vyprseni timeoutu a bad answer z api
-// lunar phase oprava
+// Fix loading location after selecting place from list
+// Added choice of kmh/mph unit and its saving to preset in weather menu
+// Invert added and saved 9.3.
+// Fix forgetting timezone in manual mode after reset 9.3.
+// Fix forgetting selected theme after reset 9.3.
+// Fix forgetting autodim settings after reset 9.3.
+// Fix forgetting temperature unit setting after reset 9.3.
+// Fix display of timeout expiration and bad answer from api
+// Lunar phase fix
 
 #include <WiFi.h>
 #include <Preferences.h>
@@ -22,43 +22,43 @@
 #include <Update.h>
 #include <esp_ota_ops.h>
 
-// ================= GLOBÁLNÍ NASTAVENÍ (Musí být PRVNÍ) =================
+// ================= GLOBAL SETTINGS (Must be FIRST) =================
 TFT_eSPI tft = TFT_eSPI();
 Preferences prefs;
-bool isWhiteTheme = false;  // TEĎ JE TO TADY, TAKŽE TO VŠICHNI VIDÍ
-// ================= NOVÉ PROMĚNNÉ PRO HODINY =================
+bool isWhiteTheme = false;  // NOW IT'S HERE, SO EVERYONE CAN SEE IT
+// ================= NEW VARIABLES FOR CLOCK =================
 bool isDigitalClock = false; // false = Analog, true = Digital
 bool is12hFormat = false;    // false = 24h, true = 12h
-bool invertColors = false;  // NOVÁ PROMĚNNÁ: Invertování barev pro CYD desky s invertovaným displejem
+bool invertColors = false;  // NEW VARIABLE: Color inversion for CYD boards with inverted display
 
 // ================= OTA UPDATE GLOBALS =================
-const char* FIRMWARE_VERSION = "1.3";  // AKTUÁLNÍ VERZE
+const char* FIRMWARE_VERSION = "1.3";  // CURRENT VERSION
 const char* VERSION_CHECK_URL = "https://raw.githubusercontent.com/lachimalaif/DataDisplay-V1-instalator/main/version.json";
 const char* FIRMWARE_URL = "https://github.com/lachimalaif/DataDisplay-V1-instalator/releases/latest/download/DataDisplayCYD.ino.bin";
 
-String availableVersion = "";  // Dostupná verze z GitHubu
-String downloadURL = "";       // URL pro stažení firmware (z version.json)
-bool updateAvailable = false;  // Je k dispozici aktualizace?
+String availableVersion = "";  // Available version from GitHub
+String downloadURL = "";       // URL to download firmware (from version.json)
+bool updateAvailable = false;  // Is update available?
 int otaInstallMode = 1;  // 0=Auto, 1=By user, 2=Manual
 unsigned long lastVersionCheck = 0;
-const unsigned long VERSION_CHECK_INTERVAL = 86400000;  // 24 hodin (pro testování změň na 30000 = 30s)
+const unsigned long VERSION_CHECK_INTERVAL = 86400000;  // 24 hours (for testing change to 30000 = 30s)
 
-bool isUpdating = false;  // Probíhá aktualizace?
+bool isUpdating = false;  // Is update in progress?
 int updateProgress = 0;   // Progress 0-100%
-String updateStatus = ""; // Status zpráva
+String updateStatus = ""; // Status message
 
-// ================= TEMA NASTAVENI =================
+// ================= THEME SETTINGS =================
 int themeMode = 0; // 0 = BLACK, 1 = WHITE, 2 = BLUE, 3 = YELLOW
-// POZN: U tématech BLACK a WHITE určuje isWhiteTheme: false=BLACK, true=WHITE
-// U tématech BLUE a YELLOW je isWhiteTheme ignorován (pevné barvy)
+// NOTE: For BLACK and WHITE themes, isWhiteTheme determines: false=BLACK, true=WHITE
+// For BLUE and YELLOW themes, isWhiteTheme is ignored (fixed colors)
 
-float themeTransition = 0.0f; // Průběh přechodu (0.0 - 1.0)
+float themeTransition = 0.0f; // Transition progress (0.0 - 1.0)
 
-// Barvy s přechody
-uint16_t blueLight = 0x07FF;    // Světle modrá
-uint16_t blueDark = 0x0010;     // Tmavě modrá
-uint16_t yellowLight = 0xFFE0;  // Světle žlutá
-uint16_t yellowDark = 0xCC00;   // Tmavě žlutá
+// Colors with transitions
+uint16_t blueLight = 0x07FF;    // Light blue
+uint16_t blueDark = 0x0010;     // Dark blue
+uint16_t yellowLight = 0xFFE0;  // Light yellow
+uint16_t yellowDark = 0xCC00;   // Dark yellow
 
 
 // ================= WEATHER GLOBALS =================
@@ -82,21 +82,21 @@ struct ForecastData {
   float tempMin;
 };
 ForecastData forecast[2]; 
-// Proměnné pro dny předpovědi
-String forecastDay1Name = "Mon";  // Zítra
-String forecastDay2Name = "Tue";  // Pozítří
+// Variables for forecast days
+String forecastDay1Name = "Mon";  // Tomorrow
+String forecastDay2Name = "Tue";  // Day after tomorrow
 
 int moonPhaseVal = 0; 
 
-// ================= SLUNCE A AUTO DIM (NOVÉ Z control.txt) =================
+// ================= SUN AND AUTO DIM (NEW FROM control.txt) =================
 String sunriseTime = "--:--";
 String sunsetTime = "--:--";
-// ================= AUTODIM UI - NASTAVENÍ V MENU =================
+// ================= AUTODIM UI - SETTINGS IN MENU =================
 int autoDimEditMode = 0;  // 0=none, 1=editing start, 2=editing end, 3=editing level
 int autoDimTempStart = 22;
 int autoDimTempEnd = 6;
 int autoDimTempLevel = 20;
-unsigned long lastBrightnessUpdate = 0;  // Aby se jas neměnil při každém loopu
+unsigned long lastBrightnessUpdate = 0;  // So brightness doesn't change on every loop
 
 bool autoDimEnabled = false;
 int autoDimStart = 22; 
@@ -246,7 +246,7 @@ void drawWeatherIconVectorSmall(int code, int x, int y) {
       tft.fillCircle(x + 15, y + 10, 8, cloudCol);
       tft.fillCircle(x + 22, y + 13, 6, cloudCol);
       tft.fillRoundRect(x + 9, y + 13, 16, 6, 3, cloudCol);
-      // Sníh - stejné hvězdičky
+      // Snow - same asterisks
       tft.setTextColor(TFT_SKYBLUE);
       tft.drawString("*", x + 11, y + 21); 
       tft.drawString("*", x + 19, y + 21);
@@ -494,7 +494,7 @@ String countryToISO(String country) {
 
 String removeDiacritics(String input) {
   String output = input;
-  // Malá písmena
+  // Lowercase letters
   output.replace("á", "a"); output.replace("č", "c"); output.replace("ď", "d");
   output.replace("é", "e"); output.replace("ě", "e"); output.replace("í", "i");
   output.replace("ľ", "l"); output.replace("ĺ", "l"); output.replace("ň", "n");
@@ -502,7 +502,7 @@ String removeDiacritics(String input) {
   output.replace("š", "s"); output.replace("ť", "t"); output.replace("ú", "u");
   output.replace("ů", "u"); output.replace("ý", "y"); output.replace("ž", "z");
   
-  // Velká písmena
+  // Uppercase letters
   output.replace("Á", "A"); output.replace("Č", "C"); output.replace("Ď", "D");
   output.replace("É", "E"); output.replace("Ě", "E"); output.replace("Í", "I");
   output.replace("Ľ", "L"); output.replace("Ĺ", "L"); output.replace("Ň", "N");
@@ -574,7 +574,7 @@ String wifiSSIDs[MAX_NETWORKS];
 int wifiCount = 0, wifiOffset = 0;
 bool keyboardNumbers = false;
 bool keyboardShift = false;
-bool showPassword = false; // Výchozí stav: heslo je skryté (hvězdičky)
+bool showPassword = false; // Default state: password is hidden (asterisks)
 
 const int TOUCH_X_MIN = 200;
 const int TOUCH_X_MAX = 3900;
@@ -948,11 +948,11 @@ bool lookupCountryGeonames(String countryName) {
 }
 
 // ============================================
-// OPRAVA 1: Získání Timezone z API (pro celý svět)
+// FIX 1: Getting Timezone from API (worldwide)
 // ============================================
 void detectTimezoneFromCoords(float lat, float lon, String countryHint) {
   if (WiFi.status() != WL_CONNECTED) {
-    // Fallback pokud není wifi, ale to by se při lookupu nemělo stát
+    // Fallback if there's no wifi, but this shouldn't happen during lookup
     lookupTimezone = "Europe/Prague";
     lookupGmtOffset = 3600;
     lookupDstOffset = 3600;
@@ -962,7 +962,7 @@ void detectTimezoneFromCoords(float lat, float lon, String countryHint) {
   Serial.println("[TZ-AUTO] Detecting timezone from API for: " + String(lat,4) + ", " + String(lon,4));
   
   HTTPClient http;
-  // Použijeme Open-Meteo, které vrací "utc_offset_seconds" a "timezone"
+  // Use Open-Meteo, which returns "utc_offset_seconds" and "timezone"
   String url = "https://api.open-meteo.com/v1/forecast?latitude=" + String(lat, 4) + "&longitude=" + String(lon, 4) + "&timezone=auto&daily=weather_code&foreground_days=1";
   
   http.setTimeout(8000);
@@ -1003,7 +1003,7 @@ void detectTimezoneFromCoords(float lat, float lon, String countryHint) {
   }
   http.end();
 
-  // Fallback pokud API selže - alespoň zkusíme základní regiony podle hintu
+  // Fallback if API fails - at least try basic regions based on hint
   Serial.println("[TZ-AUTO] API Failed, using basic fallback");
   if (countryHint == "United Kingdom" || countryHint == "Ireland" || countryHint == "Portugal") {
      lookupTimezone = "Europe/London"; lookupGmtOffset = 0; lookupDstOffset = 3600;
@@ -1012,7 +1012,7 @@ void detectTimezoneFromCoords(float lat, float lon, String countryHint) {
   } else if (countryHint == "Japan") {
      lookupTimezone = "Asia/Tokyo"; lookupGmtOffset = 32400; lookupDstOffset = 0;
   } else if (countryHint.indexOf("America") >= 0 || countryHint == "Canada" || countryHint == "USA") {
-     // Hrubý odhad pro Ameriku pokud API selže
+     // Rough estimate for America if API fails
      lookupTimezone = "America/New_York"; lookupGmtOffset = -18000; lookupDstOffset = 3600;
   } else {
      lookupTimezone = "Europe/Prague"; lookupGmtOffset = 3600; lookupDstOffset = 3600;
@@ -1020,7 +1020,7 @@ void detectTimezoneFromCoords(float lat, float lon, String countryHint) {
 }
 
 // ============================================
-// OPRAVA 2: Ukládání do GLOBÁLNÍCH souřadnic
+// FIX 2: Saving to GLOBAL coordinates
 // ============================================
 bool lookupCityNominatim(String cityName, String countryHint) {
   if (WiFi.status() != WL_CONNECTED) {
@@ -1256,7 +1256,7 @@ void syncRegion() {
         selectedCountry = "Australia";
         gmtOffset_sec = 36000; daylightOffset_sec = 3600;
       } else {
-        // Fallback pokud neznáme zónu - necháme Czech Republic nebo stávající
+        // Fallback if we don't know the zone - keep Czech Republic or existing
         if (selectedCountry == "") {
            selectedCountry = "Czech Republic";
            gmtOffset_sec = 3600; daylightOffset_sec = 3600;
@@ -1359,7 +1359,7 @@ void drawSettingsScreen()
     }
   }
 
-  // Šipka nahoru (pokud nejsme na začátku)
+  // Up arrow (if not at the beginning)
   if (menuOffset > 0) {
     tft.drawRoundRect(230, 70, 50, 50, 4, TFT_BLUE);
     drawArrowUp(230, 70, TFT_BLUE);
@@ -1369,7 +1369,7 @@ void drawSettingsScreen()
   tft.drawRoundRect(230, 125, 50, 50, 4, TFT_RED);
   drawArrowBack(230, 125, TFT_RED);
 
-  // Šipka dolů (pokud je více než 4 položky)
+  // Down arrow (if there are more than 4 items)
   if (menuOffset < (totalItems - visibleItems)) {
     tft.drawRoundRect(230, 180, 50, 50, 4, TFT_BLUE);
     drawArrowDown(230, 180, TFT_BLUE);
@@ -2108,7 +2108,7 @@ void drawInitialSetup() {
   }
 
   // Vykreslení navigačních šipek
-  // Šipka ZPĚT - pouze pokud už máme nějakou WiFi uloženou (nejsme v initial setupu bez dat)
+  // BACK arrow - only if we already have some WiFi saved (not in initial setup without data)
   if (ssid != "") {
     drawArrowBack(265, 50, TFT_RED);
   }
@@ -2138,7 +2138,7 @@ void drawKeyboardScreen() {
   tft.drawRect(10, 40, 300, 30, isWhiteTheme ? TFT_BLACK : TFT_WHITE);
   tft.setFreeFont(&FreeSans9pt7b);
   tft.setTextDatum(ML_DATUM);
-  // LOGIKA ZOBRAZENÍ: Hvězdičky pouze pro WiFi a pouze pokud showPassword je false
+  // DISPLAY LOGIC: Asterisks only for WiFi and only if showPassword is false
   if (currentState == KEYBOARD && !showPassword) {
     String stars = "";
     for (int i = 0; i < passwordBuffer.length(); i++) stars += "*";
@@ -2270,7 +2270,7 @@ void drawDateAndWeek(const struct tm *ti)
   tft.setTextColor(dateColor, getBgColor());
   tft.setTextDatum(MC_DATUM);
   
-  // OPRAVA: Mazn pouze vpravo od cifernku x > 155, Výka od y160 do y240 (80 pixel)
+  // FIX: Clear only right of the clock x > 155, Height from y160 to y240 (80 pixels)
   tft.fillRect(155, 160, 165, 80, getBgColor());
 
   char dateBuf[30];
@@ -2336,13 +2336,13 @@ void drawDigitalClock(int h, int m, int s) {
   // Používáme clockX a clockY jako střed (stejné jako analog)
   // Box: w=160, h=60
   
-  // Pokud je aktivní gradient (theme 2 a 3), mazání rectem udělá "díru".
-  // Nejlepší řešení pro text na gradientu bez flicker free knihovny je
-  // nastavit pozadí textu na barvu, která tam cca je, nebo jen přepisovat.
-  // Zde použijeme barvu pozadí (pro flat themes ok, pro gradient to bude vidět, ale je to funkční)
+  // If gradient is active (theme 2 and 3), erasing with rect makes a "hole".
+  // Best solution for text on gradient without flicker free library is
+  // to set text background to a color that's approximately there, or just overwrite.
+  // Here we use background color (ok for flat themes, will be visible for gradient but it's functional)
   tft.setTextColor(clockColor, bgColor); 
   
-  // Velký čas (použijeme font 7 pokud je, jinak 6. Font 7 je 7-segment)
+  // Large time (use font 7 if available, otherwise 6. Font 7 is 7-segment)
   // V CYD knihovnách bývá font 7 (7-seg)
   tft.drawString(timeStr, clockX, clockY, 7); 
 
@@ -2359,21 +2359,21 @@ void drawDigitalClock(int h, int m, int s) {
 }
 
 void updateHands(int h, int m, int s) {
-  // Pokud je zapnutý digitální režim, kreslíme digitálně
+  // If digital mode is enabled, draw digitally
   if (isDigitalClock) {
     drawDigitalClock(h, m, s);
     return;
   }
 
-  // --- PŮVODNÍ ANALOGOVÝ KÓD ---
+  // --- ORIGINAL ANALOG CODE ---
   uint16_t bgColor = getBgColor();
   uint16_t mainHandColor = getTextColor();
   uint16_t secColor = getSecHandColor();
 
-  // SMAZÁNÍ STARÝCH RUČEK (pokud existují)
+  // ERASING OLD HANDS (if they exist)
   if (lastSec != -1) {
     float hO = (lastHour % 12) + (lastMin / 60.0f);
-    hO = hO * 30 - 90;  // Převod do stupňů
+    hO = hO * 30 - 90;  // Convert to degrees
     
     float mO = lastMin * 6 - 90;
     float sO = lastSec * 6 - 90;
@@ -2419,12 +2419,12 @@ void updateHands(int h, int m, int s) {
 }
 
 // ============================================
-// OPRAVA 3: Ukládání a načítání souřadnic
+// FIX 3: Saving and loading coordinates
 // ============================================
 void applyLocation() {
   configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
   
-  // RESET SOUŘADNIC - při vyberu ze seznamu musíme nechat fetchWeatherData() najít nové souřadnice
+  // RESET COORDINATES - when selecting from list we must let fetchWeatherData() find new coordinates
   lat = 0.0;
   lon = 0.0;
   
@@ -2443,10 +2443,10 @@ void applyLocation() {
   prefs.end();
   cityName = selectedCity;
   
-  lastDay = -1; // Vynutí update data
-  lastWeatherUpdate = 0; // Vynutí update počasí
-  lastNamedayDay = -1; // OPRAVA: Vynutí update svátku při změně lokace
-  handleNamedayUpdate(); // OPRAVA: Aktualizace svátku ihned po změně lokace
+  lastDay = -1; // Force date update
+  lastWeatherUpdate = 0; // Force weather update
+  lastNamedayDay = -1; // FIX: Force nameday update on location change
+  handleNamedayUpdate(); // FIX: Update nameday immediately after location change
 }
 
 void loadSavedLocation() {
@@ -2456,11 +2456,11 @@ void loadSavedLocation() {
   String savedCity = prefs.getString("city", "");
   selectedTimezone = prefs.getString("timezone", "");
   
-  // OPRAVA: Sjednocení názvů klíčů s funkcí applyLocation ("gmt" místo "gmtOffset")
+  // FIX: Unify key names with applyLocation function ("gmt" instead of "gmtOffset")
   gmtOffset_sec = prefs.getInt("gmt", 3600);
   daylightOffset_sec = prefs.getInt("dst", 3600);
   
-  // NAČTEME ULOŽENÉ SOUŘADNICE
+  // LOAD SAVED COORDINATES
   lat = prefs.getFloat("lat", 0.0);
   lon = prefs.getFloat("lon", 0.0);
   
@@ -2501,21 +2501,21 @@ String getWindDir(int deg) {
 }
 
 // ============================================
-// OPRAVA 4: Použití přesných souřadnic pro počasí
+// FIX 4: Using precise coordinates for weather
 // ============================================
 void fetchWeatherData() {
   if (WiFi.status() != WL_CONNECTED) return;
 
   HTTPClient http;
   
-  // KROK 1: Získání souřadnic
-  // Pokud už máme souřadnice z Custom Lookup (nejsou 0.0), POUŽIJEME JE a nehledáme znovu
+  // STEP 1: Getting coordinates
+  // If we already have coordinates from Custom Lookup (not 0.0), USE THEM and don't search again
   if (lat != 0.0 && lon != 0.0) {
      Serial.println("[WEATHER] Using saved coordinates: " + String(lat, 4) + ", " + String(lon, 4));
   } 
   else {
-    // Pokud nemáme souřadnice (např. vybráno ze seznamu embedded měst), musíme je najít
-    // Ale hledáme chytřeji - stahneme vice vysledku a filtrujeme zemi
+    // If we don't have coordinates (e.g. selected from embedded city list), we need to find them
+    // But we search smarter - download more results and filter by country
     Serial.println("[WEATHER] Searching coordinates for: " + weatherCity + ", Country: " + selectedCountry);
     
     String searchName = weatherCity;
@@ -2550,14 +2550,14 @@ void fetchWeatherData() {
            }
         }
         
-        // Pokud jsme nenašli shodu země, vezmeme první výsledek (fallback)
+        // If we didn't find a country match, take the first result (fallback)
         if (!found) {
            lat = doc["results"][0]["latitude"];
            lon = doc["results"][0]["longitude"];
            Serial.println("[WEATHER] Country match failed, taking first result: " + doc["results"][0]["country"].as<String>());
         }
         
-        // Uložíme nové souřadnice, abychom příště nemuseli hledat
+        // Save new coordinates so we don't have to search next time
         prefs.begin("sys", false);
         prefs.putFloat("lat", lat);
         prefs.putFloat("lon", lon);
@@ -2752,11 +2752,11 @@ void drawWeatherSection() {
   String tempMin1 = String((int)forecast[0].tempMin);
   String tempMax1 = String((int)forecast[0].tempMax);
   
-  // Vykreslení teploty s LOMÍTKEM místo pomlčky
+  // Drawing temperature with SLASH instead of dash
   String tempRangeOnly1 = tempMin1 + "/" + tempMax1;
   tft.drawString(tempRangeOnly1, day1x, day1y + 13);
   
-  // Výpočet pozice pro kroulek (stupень symbol)
+  // Calculate position for circle (degree symbol)
   int tempWidth1 = tft.textWidth(tempRangeOnly1);
   int degreeX1 = day1x + tempWidth1 + 3;
   int degreeY1 = day1y + 8;
@@ -2764,11 +2764,11 @@ void drawWeatherSection() {
   // Vykreslení malého krouzku jako stupně (r=1)
   drawDegreeCircle(degreeX1, degreeY1, 1, txtContrast);
   
-  // Vykreslení jednotky (C/F) za kruhem
+  // Draw unit (C/F) after circle
   tft.drawString(unit, degreeX1 + 4, day1y + 13);
 
   // ============================================
-  // DRUHÝ DEN - VYKRESLENÍ S KROUZKEM JAKO °
+  // SECOND DAY - DRAWING WITH CIRCLE AS °
   // ============================================
   drawWeatherIconVectorSmall(forecast[1].code, 8, 170);
   tft.setTextColor(txt, bg);
@@ -2781,7 +2781,7 @@ void drawWeatherSection() {
   String tempMin2 = String((int)forecast[1].tempMin);
   String tempMax2 = String((int)forecast[1].tempMax);
   
-  // Vykreslení teploty s LOMÍTKEM místo pomlčky
+  // Drawing temperature with SLASH instead of dash
   String tempRangeOnly2 = tempMin2 + "/" + tempMax2;
   tft.drawString(tempRangeOnly2, day2x, day2y + 13);
   
@@ -2919,16 +2919,16 @@ void drawSunsetIcon(int x, int y, uint16_t color) {
 
 // ================= OTA UPDATE FUNCTIONS =================
 
-// Porovnání verzí (vrací true pokud newVer > currentVer)
+// Version comparison (returns true if newVer > currentVer)
 bool isNewerVersion(String currentVer, String newVer) {
-  // Odstraníme "v" prefix pokud existuje
+  // Remove "v" prefix if it exists
   currentVer.replace("v", "");
   newVer.replace("v", "");
   
   int currMajor = 0, currMinor = 0, currPatch = 0;
   int newMajor = 0, newMinor = 0, newPatch = 0;
   
-  // Parse current version (podporuje formát X.Y.Z)
+  // Parse current version (supports X.Y.Z format)
   int firstDot = currentVer.indexOf('.');
   if (firstDot > 0) {
     currMajor = currentVer.substring(0, firstDot).toInt();
@@ -2941,7 +2941,7 @@ bool isNewerVersion(String currentVer, String newVer) {
     }
   }
   
-  // Parse new version (podporuje formát X.Y.Z)
+  // Parse new version (supports X.Y.Z format)
   firstDot = newVer.indexOf('.');
   if (firstDot > 0) {
     newMajor = newVer.substring(0, firstDot).toInt();
@@ -2976,7 +2976,7 @@ void checkForUpdate() {
   Serial.println("[OTA] Checking for updates...");
   HTTPClient http;
   
-  // OPRAVA: Povolit redirecty i pro kontrolu verze (pro jistotu)
+  // FIX: Allow redirects for version check as well (just in case)
   http.setFollowRedirects(HTTPC_STRICT_FOLLOW_REDIRECTS);
   
   http.begin(VERSION_CHECK_URL);
@@ -2994,7 +2994,7 @@ void checkForUpdate() {
     
     if (!error) {
       availableVersion = doc["version"].as<String>();
-      downloadURL = doc["download_url"].as<String>();  // NOVÉ: Načtení download URL
+      downloadURL = doc["download_url"].as<String>();  // NEW: Loading download URL
       
       Serial.print("[OTA] Current: ");
       Serial.print(FIRMWARE_VERSION);
@@ -3059,14 +3059,14 @@ void performOTAUpdate() {
   
   HTTPClient http;
   
-  // OPRAVA: Povolit sledování přesměrování (GitHub vrací 302 pro download linky)
+  // FIX: Allow following redirects (GitHub returns 302 for download links)
   http.setFollowRedirects(HTTPC_STRICT_FOLLOW_REDIRECTS);
   
   http.begin(firmwareURL);
   http.setTimeout(30000);  // 30s timeout
   int httpCode = http.GET();
   
-  // Pokud dojde k přesměrování, httpCode bude nyní 200 (z finální URL)
+  // If there's a redirect, httpCode will now be 200 (from final URL)
   if (httpCode == 200) {
     int contentLength = http.getSize();
     bool canBegin = Update.begin(contentLength);
@@ -3087,11 +3087,11 @@ void performOTAUpdate() {
           
           updateProgress = (written * 100) / contentLength;
           
-          // Aktualizace pouze pokud se progress změnil
+          // Update only if progress changed
           if (updateProgress != lastProgress) {
             lastProgress = updateProgress;
             
-            // Vymazání předchozího textu
+            // Clear previous text
             tft.fillRect(0, 60, 320, 130, TFT_BLACK);
             
             // Text "Downloading"
@@ -3248,24 +3248,24 @@ void setup() {
   isDigitalClock = prefs.getBool("digiClock", false);
   is12hFormat = prefs.getBool("12hFmt", false);
   
-  // OPRAVA: Načtení uloženého tématu
+  // FIX: Loading saved theme
   themeMode = prefs.getInt("themeMode", 0);
   isWhiteTheme = prefs.getBool("theme", false);
   invertColors = prefs.getBool("invertColors", false);
 
-  // Načtení OTA nastavení
+  // Loading OTA settings
 otaInstallMode = prefs.getInt("otaMode", 1);  // Default: By user
 Serial.print("[OTA] Install mode: ");
 Serial.println(otaInstallMode);
   
-   // OPRAVA: Načtení nastavení jasu a Auto Dim
-  brightness = prefs.getInt("bright", 255); // Načteme i uložený jas
+   // FIX: Loading brightness and Auto Dim settings
+  brightness = prefs.getInt("bright", 255); // Also load saved brightness
   autoDimEnabled = prefs.getBool("autoDimEnabled", false);
   autoDimStart = prefs.getInt("autoDimStart", 22);
   autoDimEnd = prefs.getInt("autoDimEnd", 6);
   autoDimLevel = prefs.getInt("autoDimLevel", 20);
   
-  // OPRAVA: Načtení nastavení jednotek teploty (°C / °F)
+  // FIX: Loading temperature unit settings (°C / °F)
   weatherUnitF = prefs.getBool("weatherUnitF", false);
   weatherUnitMph = prefs.getBool("weatherUnitMph", false);
   Serial.print("[SETUP] Weather unit loaded: ");
@@ -3370,7 +3370,7 @@ Serial.println(otaInstallMode);
 }
 
 String getNamedayForDate(int day, int month) {
-  // Hardcoded ceske svatky bez diakritiky - pouze pro Czech Republic
+  // Hardcoded Czech namedays without diacritics - only for Czech Republic
   static const char* namedays[13][32] = {
     {}, // mesic 0 (neexistuje)
     {"--","Novy rok","Karina","Radmila","Diana","Dalimil","Tri krále","Vilma","Ctirad","Adrian","Brezislav","Bohdana","Pravoslav","Edita","Radovan","Alice","Ctirad","Drahoslav","Vladislav","Doubravka","Ilona","Elian","Slavomir","Zdenek","Milena","Milos","Zora","Ingrid","Otyla","Zdislava","Robin","Marika"}, // Leden
@@ -3392,7 +3392,7 @@ String getNamedayForDate(int day, int month) {
 }
 
 void handleNamedayUpdate() {
-  // Pouze pro Czech Republic - hardcoded svatky
+  // Only for Czech Republic - hardcoded namedays
   if (selectedCountry != "Czech Republic") {
     namedayValid = false;
     todayNameday = "--";
