@@ -487,6 +487,8 @@ String countryToISO(String country) {
   if (country.indexOf("france") >= 0) return "FR";
   if (country.indexOf("italy") >= 0) return "IT";
   if (country.indexOf("spain") >= 0) return "ES";
+  if (country.indexOf("romania") >= 0) return "RO";
+  if (country.indexOf("switzerland") >= 0) return "CH";
   if (country.indexOf("united states") >= 0) return "US";
   if (country.indexOf("united kingdom") >= 0) return "GB";
   return "US";
@@ -720,6 +722,32 @@ const CityEntry australiaCities[] = {
   {"Wollongong", "Australia/Sydney", 36000, 3600},
 };
 
+const CityEntry romaniaCities[] = {
+  {"Bucharest", "Europe/Bucharest", 7200, 3600},
+  {"Cluj-Napoca", "Europe/Bucharest", 7200, 3600},
+  {"Timisoara", "Europe/Bucharest", 7200, 3600},
+  {"Iasi", "Europe/Bucharest", 7200, 3600},
+  {"Constanta", "Europe/Bucharest", 7200, 3600},
+  {"Craiova", "Europe/Bucharest", 7200, 3600},
+  {"Brasov", "Europe/Bucharest", 7200, 3600},
+  {"Galati", "Europe/Bucharest", 7200, 3600},
+  {"Ploiesti", "Europe/Bucharest", 7200, 3600},
+  {"Oradea", "Europe/Bucharest", 7200, 3600},
+};
+
+const CityEntry switzerlandCities[] = {
+  {"Zurich", "Europe/Zurich", 3600, 3600},
+  {"Geneva", "Europe/Zurich", 3600, 3600},
+  {"Basel", "Europe/Zurich", 3600, 3600},
+  {"Bern", "Europe/Zurich", 3600, 3600},
+  {"Lausanne", "Europe/Zurich", 3600, 3600},
+  {"Winterthur", "Europe/Zurich", 3600, 3600},
+  {"Lucerne", "Europe/Zurich", 3600, 3600},
+  {"St. Gallen", "Europe/Zurich", 3600, 3600},
+  {"Lugano", "Europe/Zurich", 3600, 3600},
+  {"Biel", "Europe/Zurich", 3600, 3600},
+};
+
 const CityEntry chinaCities[] = {
   {"Beijing", "Asia/Shanghai", 28800, 0},
   {"Chongqing", "Asia/Shanghai", 28800, 0},
@@ -743,6 +771,7 @@ struct CountryEntry {
 const CountryEntry countries[] = {
   {"AT", "Austria", austriaCities, 10},
   {"AU", "Australia", australiaCities, 10},
+  {"CH", "Switzerland", switzerlandCities, 10},
   {"CN", "China", chinaCities, 10},
   {"CZ", "Czech Republic", czechCities, 10},
   {"DE", "Germany", germanyCities, 10},
@@ -750,9 +779,10 @@ const CountryEntry countries[] = {
   {"GB", "United Kingdom", unitedKingdomCities, 10},
   {"JP", "Japan", japanCities, 10},
   {"PL", "Poland", polonyCities, 10},
+  {"RO", "Romania", romaniaCities, 10},
   {"SK", "Slovakia", slovakCities, 10},
 };
-const int COUNTRIES_COUNT = 10;
+const int COUNTRIES_COUNT = 12;
 
 uint16_t getBgColor() { 
   if (themeMode == 0) return isWhiteTheme ? TFT_WHITE : TFT_BLACK;
