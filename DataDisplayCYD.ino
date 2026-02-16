@@ -787,22 +787,22 @@ const int COUNTRIES_COUNT = 12;
 uint16_t getBgColor() { 
   if (themeMode == 0) return isWhiteTheme ? TFT_WHITE : TFT_BLACK;
   if (themeMode == 1) return isWhiteTheme ? TFT_WHITE : TFT_BLACK;
-  if (themeMode == 2) return blueDark; // MODRÁ - tmavé pozadí
-  if (themeMode == 3) return yellowDark; // ŽLUTÁ - tmavé pozadí
+  if (themeMode == 2) return blueDark; // BLUE - dark background
+  if (themeMode == 3) return yellowDark; // YELLOW - dark background
   return TFT_BLACK;
 }
 
 uint16_t getTextColor() { 
   if (themeMode == 0) return isWhiteTheme ? TFT_BLACK : TFT_WHITE;
   if (themeMode == 1) return isWhiteTheme ? TFT_BLACK : TFT_WHITE;
-  if (themeMode == 2) return blueLight; // MODRÁ - světlý text
-  if (themeMode == 3) return yellowLight; // ŽLUTÁ - světlý text
+  if (themeMode == 2) return blueLight; // BLUE - light text
+  if (themeMode == 3) return yellowLight; // YELLOW - light text
   return TFT_WHITE;
 }
 
 uint16_t getSecHandColor() { 
-  if (themeMode == 2) return yellowLight;   // Sekundová ručička v modrém tématu = žlutá
-  if (themeMode == 3) return blueLight;     // Sekundová ručička v žlutém tématu = modrá
+  if (themeMode == 2) return yellowLight;   // Second hand in blue theme = yellow
+  if (themeMode == 3) return blueLight;     // Second hand in yellow theme = blue
   return isWhiteTheme ? TFT_RED : TFT_YELLOW; 
 }
 
@@ -2209,7 +2209,7 @@ void drawKeyboardScreen() {
     }
   }
 
-  // Mezerník a funkční tlačítka (zbytek zůstává stejný)
+  // Spacebar and function buttons (rest remains the same)
   tft.drawRect(2, 170, 316, 25, isWhiteTheme ? TFT_DARKGREY : TFT_WHITE);
   tft.setTextDatum(MC_DATUM);
   tft.drawString("Space", 160, 183);
@@ -2232,7 +2232,7 @@ void drawKeyboardScreen() {
 }
 
 void updateKeyboardText() {
-  // Vymaže pouze vnitřek rámečku pro text, aby neblikal zbytek klávesnice
+  // Clears only the inside of the text box frame, so the rest of the keyboard doesn't flicker
   tft.fillRect(11, 41, 298, 28, isWhiteTheme ? TFT_WHITE : TFT_BLACK);
   
   tft.setFreeFont(&FreeSans9pt7b);
@@ -3402,19 +3402,19 @@ Serial.println(otaInstallMode);
 String getNamedayForDate(int day, int month) {
   // Hardcoded Czech namedays without diacritics - only for Czech Republic
   static const char* namedays[13][32] = {
-    {}, // mesic 0 (neexistuje)
-    {"--","Novy rok","Karina","Radmila","Diana","Dalimil","Tri krále","Vilma","Ctirad","Adrian","Brezislav","Bohdana","Pravoslav","Edita","Radovan","Alice","Ctirad","Drahoslav","Vladislav","Doubravka","Ilona","Elian","Slavomir","Zdenek","Milena","Milos","Zora","Ingrid","Otyla","Zdislava","Robin","Marika"}, // Leden
-    {"--","Hynek","Nela","Blazej","Jarmila","Dobromila","Vanda","Veronika","Milada","Apolena","Mojmir","Bozena","Slavena","Vendelin","Valentin","Jiri","Ljuba","Miloslav","Gizela","Patrik","Oldrich","Lenka","Petr","Svatopluk","Matej","Liliana","Dorotea","Alexandr","Lumír","Horymír","--","--"}, // Unor
-    {"--","Bedrich","Anezka","Kamil","Stela","Kazimir","Miroslav","Tomas","Gabriela","Franciska","Viktorie","Andelka","Rehore","Ruzena","Matylda","Kristyna","Lubomir","Vlastimil","Eduard","Josef","Svetlana","Radek","Leona","Ivona","Gabriel","Marian","Emanuel","Dita","Sonar","Taťana","Arnošt","Kveta"}, // Brezen
-    {"--","Hugo","Erika","Richard","Ivana","Miroslava","Vendula","Herman","Ema","Dusan","Darja","Izabela","Julius","Ales","Vincenc","Anastázie","Irena","Rudolf","Valerie","Rostislav","Marcela","Alexandr","Evženie","Vojtech","Jiri","Marek","Oto","Jaroslav","Vlastislav","Robert","Blahoslav","--"}, // Duben
-    {"--","Svátek práce","Zikmund","Alexej","Květoslav","Klaudie","Radoslav","Stanislav","Den vítězství","Ctibor","Blažena","Svatava","Pankrac","Servác","Bonifác","Žofie","Přemysl","Aneta","Nataša","Ivo","Zbyšek","Monika","Emil","Vladimír","Jana","Viola","Filip","Valdemar","Vilém","Maxim","Ferdinand","Kamila"}, // Kveten
-    {"--","Laura","Jarmil","Tamara","Dalibor","Dobroslav","Norbert","Iveta","Medard","Stanislava","Gita","Bruno","Antonie","Antonín","Roland","Vít","Zbyněk","Adolf","Milan","Leoš","Květa","Alois","Pavla","Zdeňka","Jan","Ivan","Adriana","Ladislav","Lubomír","Petr a Pavel","Šárka","--"}, // Cerven
-    {"--","Jaroslava","Patricie","Radomír","Prokop","Cyril a Metoděj","Jan Hus","Bohuslava","Nora","Drahoslava","Libuše a Amálie","Olga","Bořek","Markéta","Karolína","Jindřich","Luboš","Martina","Drahomíra","Čeněk","Ilja","Vítězslav","Magdaléna","Libor","Kristýna","Jakub","Anna","Věroslav","Viktor","Marta","Bořivoj","Ignác"}, // Cervenec
-    {"--","Oskar","Gustav","Miluše","Dominik","Kristián","Oldřiška","Lada","Soběslav","Roman","Vavřinec","Zuzana","Klára","Alena","Alan","Hana","Jáchym","Petra","Helena","Ludvík","Bernard","Johana","Bohuslav","Sandra","Bartoloměj","Radim","Luděk","Otakar","Augustýn","Evelína","Vladěna","Pavlína"}, // Srpen
-    {"--","Linda","Adéla","Bronislav","Jindřiška","Boris","Boleslav","Regína","Mariana","Daniela","Irma","Denisa","Marie","Lubor","Radka","Jolana","Ludmila","Naděžda","Kryštof","Zita","Oleg","Matouš","Darina","Berta","Jaromír","Zlata","Andrea","Jonáš","Václav","Michal","Jeroným","--"}, // Zari
-    {"--","Igor","Olivie","Bohumil","František","Eliška","Hanuš","Justýna","Věra","Štefan","Marina","Andrej","Marcel","Renáta","Agáta","Tereza","Havel","Hedvika","Lukáš","Michaela","Vendelín","Brigita","Sabina","Teodor","Nina","Beáta","Erik","Šarlota","Státní svátek","Silvie","Tadeáš","Štěpánka"}, // Rijen
-    {"--","Felix","Památka zesnulých","Hubert","Karel","Miriam","Liběna","Saskie","Bohumír","Bohdan","Evžen","Martin","Benedikt","Tibor","Sáva","Leopold","Otmar","Den boje za svobodu","Romana","Alžběta","Nikola","Albert","Cecílie","Klement","Emílie","Kateřina","Artur","Xenie","René","Zina","Ondřej","--"}, // Listopad
-    {"--","Iva","Blanka","Svatoslav","Barbora","Jitka","Mikuláš","Ambrož","Květoslava","Vratislav","Julie","Dana","Simona","Lucie","Lýdie","Radana","Albína","Daniel","Miloslav","Ester","Dagmar","Natálie","Šimon","Vlasta","Štědrý den","1. svátek vánoční","2. svátek vánoční","Žaneta","Bohumila","Judita","David","Silvestr"} // Prosinec
+    {}, // month 0 (doesn't exist)
+    {"--","Novy rok","Karina","Radmila","Diana","Dalimil","Tri krále","Vilma","Ctirad","Adrian","Brezislav","Bohdana","Pravoslav","Edita","Radovan","Alice","Ctirad","Drahoslav","Vladislav","Doubravka","Ilona","Elian","Slavomir","Zdenek","Milena","Milos","Zora","Ingrid","Otyla","Zdislava","Robin","Marika"}, // January
+    {"--","Hynek","Nela","Blazej","Jarmila","Dobromila","Vanda","Veronika","Milada","Apolena","Mojmir","Bozena","Slavena","Vendelin","Valentin","Jiri","Ljuba","Miloslav","Gizela","Patrik","Oldrich","Lenka","Petr","Svatopluk","Matej","Liliana","Dorotea","Alexandr","Lumír","Horymír","--","--"}, // February
+    {"--","Bedrich","Anezka","Kamil","Stela","Kazimir","Miroslav","Tomas","Gabriela","Franciska","Viktorie","Andelka","Rehore","Ruzena","Matylda","Kristyna","Lubomir","Vlastimil","Eduard","Josef","Svetlana","Radek","Leona","Ivona","Gabriel","Marian","Emanuel","Dita","Sonar","Taťana","Arnošt","Kveta"}, // March
+    {"--","Hugo","Erika","Richard","Ivana","Miroslava","Vendula","Herman","Ema","Dusan","Darja","Izabela","Julius","Ales","Vincenc","Anastázie","Irena","Rudolf","Valerie","Rostislav","Marcela","Alexandr","Evženie","Vojtech","Jiri","Marek","Oto","Jaroslav","Vlastislav","Robert","Blahoslav","--"}, // April
+    {"--","Svátek práce","Zikmund","Alexej","Květoslav","Klaudie","Radoslav","Stanislav","Den vítězství","Ctibor","Blažena","Svatava","Pankrac","Servác","Bonifác","Žofie","Přemysl","Aneta","Nataša","Ivo","Zbyšek","Monika","Emil","Vladimír","Jana","Viola","Filip","Valdemar","Vilém","Maxim","Ferdinand","Kamila"}, // May
+    {"--","Laura","Jarmil","Tamara","Dalibor","Dobroslav","Norbert","Iveta","Medard","Stanislava","Gita","Bruno","Antonie","Antonín","Roland","Vít","Zbyněk","Adolf","Milan","Leoš","Květa","Alois","Pavla","Zdeňka","Jan","Ivan","Adriana","Ladislav","Lubomír","Petr a Pavel","Šárka","--"}, // June
+    {"--","Jaroslava","Patricie","Radomír","Prokop","Cyril a Metoděj","Jan Hus","Bohuslava","Nora","Drahoslava","Libuše a Amálie","Olga","Bořek","Markéta","Karolína","Jindřich","Luboš","Martina","Drahomíra","Čeněk","Ilja","Vítězslav","Magdaléna","Libor","Kristýna","Jakub","Anna","Věroslav","Viktor","Marta","Bořivoj","Ignác"}, // July
+    {"--","Oskar","Gustav","Miluše","Dominik","Kristián","Oldřiška","Lada","Soběslav","Roman","Vavřinec","Zuzana","Klára","Alena","Alan","Hana","Jáchym","Petra","Helena","Ludvík","Bernard","Johana","Bohuslav","Sandra","Bartoloměj","Radim","Luděk","Otakar","Augustýn","Evelína","Vladěna","Pavlína"}, // August
+    {"--","Linda","Adéla","Bronislav","Jindřiška","Boris","Boleslav","Regína","Mariana","Daniela","Irma","Denisa","Marie","Lubor","Radka","Jolana","Ludmila","Naděžda","Kryštof","Zita","Oleg","Matouš","Darina","Berta","Jaromír","Zlata","Andrea","Jonáš","Václav","Michal","Jeroným","--"}, // September
+    {"--","Igor","Olivie","Bohumil","František","Eliška","Hanuš","Justýna","Věra","Štefan","Marina","Andrej","Marcel","Renáta","Agáta","Tereza","Havel","Hedvika","Lukáš","Michaela","Vendelín","Brigita","Sabina","Teodor","Nina","Beáta","Erik","Šarlota","Státní svátek","Silvie","Tadeáš","Štěpánka"}, // October
+    {"--","Felix","Památka zesnulých","Hubert","Karel","Miriam","Liběna","Saskie","Bohumír","Bohdan","Evžen","Martin","Benedikt","Tibor","Sáva","Leopold","Otmar","Den boje za svobodu","Romana","Alžběta","Nikola","Albert","Cecílie","Klement","Emílie","Kateřina","Artur","Xenie","René","Zina","Ondřej","--"}, // November
+    {"--","Iva","Blanka","Svatoslav","Barbora","Jitka","Mikuláš","Ambrož","Květoslava","Vratislav","Julie","Dana","Simona","Lucie","Lýdie","Radana","Albína","Daniel","Miloslav","Ester","Dagmar","Natálie","Šimon","Vlasta","Štědrý den","1. svátek vánoční","2. svátek vánoční","Žaneta","Bohumila","Judita","David","Silvestr"} // December
   };
   
   if (month < 1 || month > 12 || day < 1 || day > 31) return "--";
@@ -4406,8 +4406,8 @@ case FIRMWARE_SETTINGS: {
           analogWrite(LCD_BL_PIN, brightness); drawGraphicsScreen(); delay(100); break;
         }
 
-        // === NOVÝ PŘEPÍNAČ ANALOG / DIGITAL ===
-        // Oblast: x >= 200, y cca 115-143
+        // === NEW ANALOG / DIGITAL SWITCH ===
+        // Area: x >= 200, y approx 115-143
         if (x >= 200 && x <= 310 && y >= 115 && y <= 145) {
           isDigitalClock = !isDigitalClock;
           prefs.begin("sys", false); prefs.putBool("digiClock", isDigitalClock); prefs.end();
@@ -4420,24 +4420,24 @@ case FIRMWARE_SETTINGS: {
           menuOffset = 0; drawSettingsScreen(); delay(150); break;
         }
         
-        // ... (Zbytek kódu pro AutoDim zůstává stejný) ...
+        // ... (Rest of AutoDim code remains the same) ...
         if (x >= 10 && x <= 38 && y >= 175 && y <= 191) {
-             // ... kód pro AutoDim ON ...
+             // ... code for AutoDim ON ...
              autoDimEnabled = true;
              prefs.begin("sys", false); prefs.putBool("autoDimEnabled", autoDimEnabled); prefs.end();
              drawGraphicsScreen(); delay(150); break;
         }
         if (x >= 10 && x <= 38 && y >= 195 && y <= 211) {
-             // ... kód pro AutoDim OFF ...
+             // ... code for AutoDim OFF ...
              autoDimEnabled = false;
              prefs.begin("sys", false); prefs.putBool("autoDimEnabled", autoDimEnabled); prefs.end();
              drawGraphicsScreen(); delay(150); break;
         }
-        // ... (zbytek AutoDim logiky ponech beze změny) ...
-        // PRO JISTOTU ZKOPÍRUJ CELÝ BLOK AUTODIM Z PŮVODNÍHO SOUBORU, POKUD SI NEJSI JISTÝ.
-        // Zde jen naznačuji, že zbytek case GRAPHICSCONFIG se nemění, kromě posunutí jasu a nového tlačítka.
+        // ... (rest of AutoDim logic keep unchanged) ...
+        // JUST IN CASE, COPY THE ENTIRE AUTODIM BLOCK FROM THE ORIGINAL FILE IF YOU'RE NOT SURE.
+        // Here I'm just indicating that the rest of case GRAPHICSCONFIG doesn't change, except for brightness shift and new button.
         
-        // POKRAČOVÁNÍ AUTODIM LOGIKY (aby byl kód kompletní pro copy-paste bloku):
+        // AUTODIM LOGIC CONTINUATION (to make code complete for copy-paste block):
         if (autoDimEnabled) {
           int startX = 50;
           int startY = 178; int lineHeight = 16;
@@ -4519,7 +4519,7 @@ case FIRMWARE_SETTINGS: {
         lastHour = ti.tm_hour; lastMin = ti.tm_min; lastSec = ti.tm_sec;
       }
       
-      // Zbytek obsluhy změny dne (tm_mday != lastDay) ponechte jak je.
+      // Rest of day change handling (tm_mday != lastDay) keep as is.
       if (ti.tm_mday != lastDay) {
         lastDay = ti.tm_mday;
         handleNamedayUpdate(); 
